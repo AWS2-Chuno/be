@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          working-directory: ./app  # 특정 디렉토리로 변경
+          cd app  # 특정 디렉토리로 변경
           pip install -r requirements.txt  # requirements.txt에 정의된 패키지 설치
 
       - name: Run tests
