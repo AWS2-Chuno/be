@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: video-api-config
+  namespace: video # 네임스페이스 설정
+data:
+  AWS_REGION: "your-region" # AWS 리전 설정
+  DYNAMODB_TABLE_NAME: "your-table-name" # DynamoDB 테이블 이름 설정

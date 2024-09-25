@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: fastapi-service # Service 이름
-  namespace: your-namespace # 네임스페이스 설정
+  name: video-api-service # Service 이름
+  namespace: video # 네임스페이스 설정
 spec:
   type: LoadBalancer # LoadBalancer 유형으로 설정
   ports:
     - port: 80 # 외부에서 접근할 포트
-      targetPort: 8000 # FastAPI가 사용하는 포트
+      targetPort: 8000 # video-api가 사용하는 포트
   selector:
-    app: fastapi-app # Deployment와 연결되는 레이블 설정
+    app: video-api-app # Deployment와 연결되는 레이블 설정
 

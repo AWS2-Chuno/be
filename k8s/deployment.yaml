@@ -1,27 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: fastapi-app
-  namespace: your-namespace # 네임스페이스 설정
+  name: video-api-app
+  namespace: video # 네임스페이스 설정
 spec:
   replicas: 1 # Pod의 복제본 수
   selector:
     matchLabels:
-      app: fastapi-app # 레이블 설정
+      app: video-api-app # 레이블 설정
   template:
     metadata:
       labels:
-        app: fastapi-app # 레이블 설정
+        app: video-api-app # 레이블 설정
     spec:
       serviceAccountName: your-service-account-name # 사용할 Service Account 이름
       containers:
-        - name: fastapi-container # 컨테이너 이름
-          image: your-docker-image:latest # FastAPI 컨테이너 이미지
+        - name: video-api-container # 컨테이너 이름
+          image: your-docker-image:latest # video-api 컨테이너 이미지
           ports:
-            - containerPort: 8000 # FastAPI가 사용하는 포트
-          env:
-            - name: AWS_REGION
-              value: "your-region" # AWS 리전 설정
-            - name: DYNAMODB_TABLE_NAME
-              value: "your-table-name" # DynamoDB 테이블 이름 설정
-
+            - containerPort: 8000 # video-api가 사용하는 포트
+          envFrom:
+            - configMapRef:
+                name: video-api-config # ConfigMap 이름 참조
