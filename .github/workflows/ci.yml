@@ -2,6 +2,8 @@ name: CI/CD Pipeline
 
 on:
   push:
+    paths-ignore:
+      - 'k8s/**'  # 빌드 결과물이 저장되는 경로
     branches:
       - main # main 브랜치에 푸시할 때마다 트리거
 
@@ -25,7 +27,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.ECR_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }} .
+          docker build -t ${{ secrets.ECR_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }} ./app/.
 
       - name: Log in to ECR
         run: |
