@@ -1,0 +1,59 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main # main 브랜치에 푸시할 때마다 트리거
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.8" # 사용할 Python 버전
+
+      - name: Install dependencies
+        run: |
+          working-directory: ./app  # 특정 디렉토리로 변경
+          pip install -r requirements.txt  # requirements.txt에 정의된 패키지 설치
+
+      - name: Run tests
+        run: |
+          echo "Running tests"
+          docker run --rm -d -p 8000:8000 ${{ secrets.ECR_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
+
+          # 서버가 준비될 시간을 기다립니다.
+          sleep 10
+
+          # pytest를 사용하여 테스트를 실행합니다.
+          docker run --rm -v ${{ github.workspace }}/tests:/app/tests --network host python:3.8 pytest /app/tests/test_app.py  # tests 디렉토리 경로를 맞춤
+
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ secrets.ECR_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }} .
+
+      - name: Log in to ECR
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+
+      - name: Push Docker image to ECR
+        run: |
+          docker push ${{ secrets.ECR_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
+
+      - name: Update deployment.yaml with new image
+        run: |
+          sed -i "s|image: .*|image: ${{ secrets.ECR_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}|" k8s/deployment.yaml
+
+      - name: Commit and push updated deployment.yaml
+        run: |
+          git config --local user.email "github-actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add k8s/deployment.yaml
+          git commit -m "Update image tag in deployment.yaml"
+          git push origin main  # main 브랜치에 푸시합니다.

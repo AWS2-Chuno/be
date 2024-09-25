@@ -1,11 +1,11 @@
 import os
 import pytest
 from fastapi.testclient import TestClient
-from app import app  # FastAPI 애플리케이션이 정의된 파일 import
+from app import main  # FastAPI 애플리케이션이 정의된 파일 import
 from unittest.mock import patch
 
 # FastAPI 클라이언트 생성
-client = TestClient(app)
+client = TestClient(main)
 
 # 환경 변수 설정
 os.environ["AWS_REGION"] = "us-west-2"
