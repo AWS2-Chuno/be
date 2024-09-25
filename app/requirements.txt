@@ -1,0 +1,12 @@
+fastapi==0.95.0          # FastAPI 프레임워크
+uvicorn==0.22.0         # ASGI 서버
+boto3==1.24.0           # AWS SDK for Python
+pydantic==1.10.0        # 데이터 유효성 검사 및 설정 관리
+python-multipart==0.0.6  # 파일 업로드를 위한 라이브러리
+python-dotenv
+
+
+pytest
+httpx
+boto3
+pytest-asyncio
