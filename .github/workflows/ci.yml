@@ -3,7 +3,7 @@ name: CI/CD Pipeline
 on:
   push:
     paths-ignore:
-      - 'k8s/**'  # 빌드 결과물이 저장되는 경로
+      - 'k8s/**'  # 빌드 결과물이 저장되는 경로 트리거에서 제외
     branches:
       - main # main 브랜치에 푸시할 때마다 트리거
 
@@ -60,4 +60,4 @@ jobs:
           git commit -m "Update image tag in deployment.yaml"
           git push origin main  # main 브랜치에 푸시합니다.
         env:
-          PAT: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
