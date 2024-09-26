@@ -16,7 +16,7 @@ spec:
       serviceAccountName: your-service-account-name # 사용할 Service Account 이름
       containers:
         - name: video-api-container # 컨테이너 이름
-          image: your-docker-image:latest # video-api 컨테이너 이미지
+          image: 339712823683.dkr.ecr.ap-northeast-2.amazonaws.com/chuno:fbac07e6dcc8018cf142a27779564d7d6914a352
           ports:
             - containerPort: 8000 # video-api가 사용하는 포트
           envFrom:
