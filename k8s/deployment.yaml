@@ -4,7 +4,7 @@ metadata:
   name: video-api-app
   namespace: video # 네임스페이스 설정
 spec:
-  replicas: 1 # Pod의 복제본 수
+  replicas: 2 # Pod의 복제본 수
   selector:
     matchLabels:
       app: video-api-app # 레이블 설정
