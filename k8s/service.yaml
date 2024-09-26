@@ -3,6 +3,8 @@ kind: Service
 metadata:
   name: video-api-service # Service 이름
   namespace: video # 네임스페이스 설정
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "alb"
 spec:
   type: LoadBalancer # LoadBalancer 유형으로 설정
   ports:
