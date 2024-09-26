@@ -46,6 +46,7 @@ jobs:
 
       - name: Update deployment.yaml with new image
         run: |
+          git clone https://github.com/AWS2-Chuno
           sed -i "s|image: .*|image: ${{ secrets.ECR_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}|" k8s/deployment.yaml
 
       - name: Commit and push updated deployment.yaml
@@ -60,4 +61,4 @@ jobs:
           git commit -m "Update image tag in deployment.yaml"
           git push origin main  # main 브랜치에 푸시합니다.
         env:
-          PAT: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
