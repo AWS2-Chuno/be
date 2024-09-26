@@ -13,7 +13,7 @@ spec:
       labels:
         app: video-api-app # 레이블 설정
     spec:
-      serviceAccountName: your-service-account-name # 사용할 Service Account 이름
+      serviceAccountName: video-sa
       containers:
         - name: video-api-container # 컨테이너 이름
           image: 339712823683.dkr.ecr.ap-northeast-2.amazonaws.com/chuno:20
