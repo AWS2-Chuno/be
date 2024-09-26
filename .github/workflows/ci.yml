@@ -60,4 +60,4 @@ jobs:
           git commit -m "Update image tag in deployment.yaml"
           git push origin main  # main 브랜치에 푸시합니다.
         env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          PAT: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
