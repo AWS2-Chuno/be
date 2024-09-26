@@ -4,4 +4,4 @@ metadata:
   name: video-sa
   namespace: video
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::339712823683:role/ChunoEKSNodeRole
+    eks.amazonaws.com/role-arn: arn:aws:iam::339712823683:role/S3DBAccessRole
