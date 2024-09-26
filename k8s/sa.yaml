@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: video-sa
+  namespace: video
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::339712823683:role/ChunoEKSNodeRole
