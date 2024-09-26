@@ -50,10 +50,14 @@ jobs:
 
       - name: Commit and push updated deployment.yaml
         run: |
-          git config --local user.email ${{ secrets.GIT_EMAIL }}
-          git config --local user.name ${{ secrets.GIT_NAME }}
+          git config --global user.email ${{ secrets.GIT_EMAIL }}
+          git config --global user.name ${{ secrets.GIT_NAME }}
+
+          git config user.name
+          git config user.email
+
           git add k8s/deployment.yaml
           git commit -m "Update image tag in deployment.yaml"
           git push origin main  # main 브랜치에 푸시합니다.
         env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          PAT: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
