@@ -1,5 +1,5 @@
 # 1. 베이스 이미지 설정
-FROM 339712823683.dkr.ecr.ap-northeast-2.amazonaws.com/chuno:20
+FROM python:3.9-slim
 
 # 2. 작업 디렉토리 생성
 WORKDIR /app
