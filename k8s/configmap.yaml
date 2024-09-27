@@ -4,6 +4,6 @@ metadata:
   name: video-api-config
   namespace: video # 네임스페이스 설정
 data:
-  AWS_REGION: "ap-northeast-2" # AWS 리전 설정
+  AWS_REGION: "ap-northeast-3" # AWS 리전 설정
   DYNAMODB_TABLE_NAME: "Chuno_videos" # DynamoDB 테이블 이름 설정
   S3_BUCKET_NAME: "chuno-videos-org"
