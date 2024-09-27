@@ -4,6 +4,7 @@ import boto3
 from botocore.exceptions import ClientError
 import os
 from fastapi.security import OAuth2PasswordBearer
+from fastapi.middleware.cors import CORSMiddleware
 import uuid
 
 from dotenv import load_dotenv
@@ -14,6 +15,18 @@ app = FastAPI()
 # .env 파일 로드
 load_dotenv()
 
+# CORS 설정
+origins = [
+    "*"    # 추가 도메인
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # 허용할 오리진 목록
+    allow_credentials=True,
+    allow_methods=["*"],     # 허용할 HTTP 메서드 (GET, POST 등)
+    allow_headers=["*"],     # 허용할 HTTP 헤더
+)
 
 # AWS 리전, S3 버킷 이름, DynamoDB 테이블 이름 환경 변수에서 가져오기
 AWS_REGION = os.getenv("AWS_REGION")
