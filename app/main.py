@@ -7,11 +7,6 @@ from dotenv import load_dotenv
 
 app = FastAPI()
 
-
-# .env 파일에서 환경변수를 로드
-load_dotenv()
-
-
 # AWS 리전, S3 버킷 이름, DynamoDB 테이블 이름 환경 변수에서 가져오기
 AWS_REGION = os.getenv("AWS_REGION")
 S3_BUCKET = os.getenv("S3_BUCKET_NAME")
