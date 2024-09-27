@@ -17,7 +17,8 @@ load_dotenv()
 
 # CORS 설정
 origins = [
-    "https://d1otwmssn5i115.cloudfront.net"    # 도메인
+    #"https://d1otwmssn5i115.cloudfront.net"    # 도메인
+    "*"    # 도메인
 ]
 
 app.add_middleware(
