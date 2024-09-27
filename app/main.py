@@ -3,7 +3,6 @@ from pydantic import BaseModel
 import boto3
 from botocore.exceptions import ClientError
 import os
-from dotenv import load_dotenv
 
 app = FastAPI()
 
@@ -15,17 +14,12 @@ DYNAMODB_TABLE_NAME = os.getenv("DYNAMODB_TABLE_NAME")
 # AWS 클라이언트 설정
 s3_client = boto3.client('s3', region_name=AWS_REGION)  # S3 클라이언트
 dynamodb_client = boto3.resource('dynamodb', region_name=AWS_REGION)  # DynamoDB 클라이언트
-dynamodb_table = dynamodb_client.Table(DYNAMODB_TABLE_NAME)  # DynamoDB 테이블 객체
+#dynamodb_table = dynamodb_client.Table(DYNAMODB_TABLE_NAME)  # DynamoDB 테이블 객체
 
 # 동영상 메타데이터를 위한 Pydantic 모델
 class VideoMetadata(BaseModel):
     id: str
     title: str
-    registerdddddddddd: str
-    description: str
-    thumbnailx: str
-
-
 
 @app.get("/")
 def test():
@@ -34,11 +28,12 @@ def test():
     
 @app.get("/videos/")
 async def list_videos():
-    """S3에서 동영상 목록을 조회합니다."""
+    """DynamoDB에서 동영상 데이터 목록을 조회합니다."""
     try:
-        response = s3_client.list_objects_v2(Bucket=S3_BUCKET)  # S3에서 객체 목록 조회
-        videos = [obj['Key'] for obj in response.get('Contents', [])]  # 객체 키 목록 생성
-        return {"videos": videos}  # 동영상 목록 반환
+        table = dynamodb.Table(DYNAMODB_TABLE_NAME)
+        response = table.scan()  # 모든 항목 조회 (단, 큰 테이블에서는 성능 문제 발생 가능)
+        items = response.get('Items', [])
+        return {"items": items}
     except ClientError as e:
         raise HTTPException(status_code=500, detail=str(e))  # 클라이언트 오류 처리
 
