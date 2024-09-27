@@ -25,10 +25,6 @@ jobs:
           cd app  # 특정 디렉토리로 변경
           pip install -r requirements.txt  # requirements.txt에 정의된 패키지 설치
 
-      - name: Build Docker image
-        run: |
-          docker build -t ${{ secrets.ECR_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:$GITHUB_RUN_NUMBER ./app/.
-     
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -39,7 +35,11 @@ jobs:
       - name: Log in to ECR
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-
+  
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ secrets.ECR_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:$GITHUB_RUN_NUMBER ./app/.
+     
       - name: Push Docker image to ECR
         run: |
           docker push ${{ secrets.ECR_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:$GITHUB_RUN_NUMBER
