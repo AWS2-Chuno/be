@@ -17,7 +17,7 @@ load_dotenv()
 
 # CORS 설정
 origins = [
-    "*"    # 추가 도메인
+    "https://d1otwmssn5i115.cloudfront.net"    # 도메인
 ]
 
 app.add_middleware(
@@ -40,30 +40,54 @@ dynamodb_client = boto3.resource('dynamodb', region_name=AWS_REGION)  # DynamoDB
 dynamodb_table = dynamodb_client.Table(DYNAMODB_TABLE_NAME)  # DynamoDB 테이블 객체
 
 # Cognito 설정
-#COGNITO_USER_POOL_ID = 'ap-northeast-3_Rt1SkOGagd'  # 사용자 풀 ID
 cognito_client = boto3.client('cognito-idp', region_name=AWS_REGION)
 
 # OAuth2PasswordBearer를 사용하여 토큰을 받기 위한 경로를 정의합니다.
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-@app.get("/")
-def test(token: str = Depends(oauth2_scheme)):
+# 엑세스 토큰 유효성 검사
+def validate_token(token: str):
     try:
-        # Cognito에서 토큰 검증
+         # Cognito에서 토큰 검증
+        cognito_client.get_user(
+            AccessToken=token
+        )
+    except ClientError as e:
+        raise HTTPException(status_code=401, detail=str(e))
+    
+# User ID 조회
+def get_user_id(token: str):
+    try:
+         # Cognito에서 토큰 검증
         response = cognito_client.get_user(
             AccessToken=token
         )
         
         # 사용자 ID 반환
-        user_id = response['Username']  # Username은 기본적으로 사용자의 ID입니다.
+        user_id = response['Username']  # Username은 기본적으로 사용자의 ID
+        return user_id
+    except ClientError as e:
+        raise HTTPException(status_code=401, detail=str(e))
+    
+
+@app.get("/")
+def test(token: str = Depends(oauth2_scheme)):
+    try:
+        # 엑세스 토큰 유효성 검사
+        validate_token(token)
+        user_id = get_user_id(token)
+
         return user_id
     except ClientError as e:
         raise HTTPException(status_code=401, detail=str(e))
 
     
 @app.get("/videos/")
-async def list_videos():
+async def list_videos(token: str = Depends(oauth2_scheme)):
     """DynamoDB에서 동영상 데이터 목록을 조회합니다."""
+    # 엑세스 토큰 유효성 검사
+    validate_token(token)
+
     try:
         response = dynamodb_table.scan(ProjectionExpression='id, title')  # 항목 조회 (단, 큰 테이블에서는 성능 문제 발생 가능)
         items = response.get('Items', [])
@@ -72,8 +96,11 @@ async def list_videos():
         raise HTTPException(status_code=500, detail=str(e))  # 클라이언트 오류 처리
 
 @app.post("/videos/")
-async def upload_video(file: UploadFile = File(...), title: str = Form(...), description: str = Form(...)):
+async def upload_video(file: UploadFile = File(...), title: str = Form(...), description: str = Form(...), token: str = Depends(oauth2_scheme)):
     """S3에 동영상을 업로드하고 메타데이터를 DynamoDB에 저장합니다."""
+    # 엑세스 토큰 유효성 검사
+    validate_token(token)
+
     try:
         # S3에 동영상 업로드
         s3_key = f"videos/{uuid.uuid4()}.mp4"
@@ -93,8 +120,11 @@ async def upload_video(file: UploadFile = File(...), title: str = Form(...), des
         raise HTTPException(status_code=500, detail=str(e))  # 클라이언트 오류 처리
 
 @app.get("/videos/{video_id}")
-async def get_video_details(video_id: str):
+async def get_video_details(video_id: str, token: str = Depends(oauth2_scheme)):
     """DynamoDB에서 동영상 메타데이터를 조회합니다."""
+    # 엑세스 토큰 유효성 검사
+    validate_token(token)
+
     try:
         response = dynamodb_table.get_item(Key={'id': video_id})  # DynamoDB에서 동영상 메타데이터 조회
         if 'Item' not in response:
@@ -105,8 +135,11 @@ async def get_video_details(video_id: str):
         raise HTTPException(status_code=500, detail=str(e))  # 클라이언트 오류 처리
 
 @app.delete("/videos/{video_id}")
-async def delete_video(video_id: str):
+async def delete_video(video_id: str, token: str = Depends(oauth2_scheme)):
     """S3에서 동영상을 삭제하고 DynamoDB에서 메타데이터를 제거합니다."""
+    # 엑세스 토큰 유효성 검사
+    validate_token(token)
+
     try:
         # DynamoDB에서 메타데이터 삭제
         response = dynamodb_table.get_item(Key={'id': video_id})
