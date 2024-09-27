@@ -3,8 +3,14 @@ from pydantic import BaseModel
 import boto3
 from botocore.exceptions import ClientError
 import os
+from dotenv import load_dotenv
 
 app = FastAPI()
+
+
+# .env 파일 로드
+load_dotenv()
+
 
 # AWS 리전, S3 버킷 이름, DynamoDB 테이블 이름 환경 변수에서 가져오기
 AWS_REGION = os.getenv("AWS_REGION")
@@ -14,7 +20,7 @@ DYNAMODB_TABLE_NAME = os.getenv("DYNAMODB_TABLE_NAME")
 # AWS 클라이언트 설정
 s3_client = boto3.client('s3', region_name=AWS_REGION)  # S3 클라이언트
 dynamodb_client = boto3.resource('dynamodb', region_name=AWS_REGION)  # DynamoDB 클라이언트
-#dynamodb_table = dynamodb_client.Table(DYNAMODB_TABLE_NAME)  # DynamoDB 테이블 객체
+dynamodb_table = dynamodb_client.Table(DYNAMODB_TABLE_NAME)  # DynamoDB 테이블 객체
 
 # 동영상 메타데이터를 위한 Pydantic 모델
 class VideoMetadata(BaseModel):
@@ -30,8 +36,7 @@ def test():
 async def list_videos():
     """DynamoDB에서 동영상 데이터 목록을 조회합니다."""
     try:
-        table = dynamodb.Table(DYNAMODB_TABLE_NAME)
-        response = table.scan()  # 모든 항목 조회 (단, 큰 테이블에서는 성능 문제 발생 가능)
+        response = dynamodb_table.scan(ProjectionExpression='id, title')  # 항목 조회 (단, 큰 테이블에서는 성능 문제 발생 가능)
         items = response.get('Items', [])
         return {"items": items}
     except ClientError as e:
