@@ -35,6 +35,8 @@ jobs:
       
       - name: Build Docker image
         run: |
+          echo "algograp1!" | docker login --username algograp --password-stdin
+
           docker build -t ${{ secrets.ECR_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:$GITHUB_RUN_NUMBER ./app/.
   
       - name: Log in to ECR
