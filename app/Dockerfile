@@ -1,5 +1,5 @@
 # 1. 베이스 이미지 설정
-FROM python:3.9-slim
+FROM 339712823683.dkr.ecr.ap-northeast-2.amazonaws.com/backend:20
 
 # 2. 작업 디렉토리 생성
 WORKDIR /app
