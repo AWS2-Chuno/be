@@ -10,6 +10,10 @@ spec:
   ports:
     - port: 80 # 외부에서 접근할 포트
       targetPort: 8000 # video-api가 사용하는 포트
+      name: http
+    - port: 443 # 외부에서 접근할 포트
+      targetPort: 8000 # video-api가 사용하는 포트
+      name: https
   selector:
     app: video-api-app # Deployment와 연결되는 레이블 설정
 
