@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: video-api-ingress
+  namespace: video
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]' # HTTPS로 리스닝
+    alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:ap-northeast-3:339712823683:certificate/e7fdfad1-df71-4f30-83e0-1673ef5e1e5d" # AWS ACM 인증서 ARN
+spec:
+  rules:
+    - host: chuno.store # 실제 도메인으로 변경
+      http:
+        paths:
+          - path: /api/
+            pathType: Prefix
+            backend:
+              service:
+                name: video-api-service # 위에서 정의한 Service 이름
+                port:
+                  number: 80 # 내부 HTTP 포트로 요청을 전달
+  tls:
+    - hosts:
+        - chuno.store # 실제 도메인으로 변경
+      secretName: tls-secret # TLS Secret 이름 (필요에 따라 변경)
