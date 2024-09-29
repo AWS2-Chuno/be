@@ -12,7 +12,7 @@ spec:
     - host: chuno.store # 실제 도메인으로 변경
       http:
         paths:
-          - path: /api/
+          - path: /api
             pathType: Prefix
             backend:
               service:
