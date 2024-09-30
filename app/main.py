@@ -10,8 +10,6 @@ import uuid
 from dotenv import load_dotenv
 
 app = FastAPI()
-
-
 # .env 파일 로드
 load_dotenv()
 
@@ -43,33 +41,8 @@ dynamodb_table = dynamodb_client.Table(DYNAMODB_TABLE_NAME)  # DynamoDB 테이�
 # Cognito 설정
 cognito_client = boto3.client('cognito-idp', region_name=AWS_REGION)
 
-# OAuth2PasswordBearer를 사용하여 토큰을 받기 위한 경로를 정의합니다.
+# OAuth2PasswordBearer를 사용하여 토큰을 받기 위한 경로 정의
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-# 엑세스 토큰 유효성 검사
-def validate_token(token: str):
-    try:
-         # Cognito에서 토큰 검증
-        cognito_client.get_user(
-            AccessToken=token
-        )
-    except ClientError as e:
-        raise HTTPException(status_code=401, detail=str(e))
-    
-# User ID 조회
-def get_user_id(token: str):
-    try:
-         # Cognito에서 토큰 검증
-        response = cognito_client.get_user(
-            AccessToken=token
-        )
-        
-        # 사용자 ID 반환
-        user_id = response['Username']  # Username은 기본적으로 사용자의 ID
-        return user_id
-    except ClientError as e:
-        raise HTTPException(status_code=401, detail=str(e))
-    
 
 @app.get("/")
 def test(token: str = Depends(oauth2_scheme)):
@@ -195,3 +168,29 @@ async def delete_video(video_id: str, token: str = Depends(oauth2_scheme)):
         return {"message": "Video deleted successfully!"}  # 성공 메시지 반환
     except ClientError as e:
         raise HTTPException(status_code=500, detail=str(e))  # 클라이언트 오류 처리
+
+###########################################################################################
+
+# 엑세스 토큰 유효성 검사
+def validate_token(token: str):
+    try:
+         # Cognito에서 토큰 검증
+        cognito_client.get_user(
+            AccessToken=token
+        )
+    except ClientError as e:
+        raise HTTPException(status_code=401, detail=str(e))
+    
+# User ID 조회
+def get_user_id(token: str):
+    try:
+         # Cognito에서 토큰 검증
+        response = cognito_client.get_user(
+            AccessToken=token
+        )
+        
+        # 사용자 ID 반환
+        user_id = response['Username']  # Username은 기본적으로 사용자의 ID
+        return user_id
+    except ClientError as e:
+        raise HTTPException(status_code=401, detail=str(e))
