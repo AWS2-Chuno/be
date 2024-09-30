@@ -95,7 +95,25 @@ async def list_videos(token: str = Depends(oauth2_scheme)):
         return {"items": items}
     except ClientError as e:
         raise HTTPException(status_code=500, detail=str(e))  # 클라이언트 오류 처리
+    
+@app.get("/myvideos/")
+async def list_my_videos(token: str = Depends(oauth2_scheme)):
+    """DynamoDB에서 동영상 데이터 목록을 조회합니다."""
+    # 엑세스 토큰 유효성 검사
+    validate_token(token)
+    user_id = get_user_id(token)
 
+    try:
+        # 'uploader'가 user_id와 일치하는 항목을 필터링하여 조회
+        response = dynamodb_table.scan(
+            FilterExpression=Attr('uploader').eq(user_id),  # uploader가 user_id와 일치하는 항목만 필터링
+            ProjectionExpression='id, title'  # id와 title만 가져오기
+        )
+        items = response.get('Items', [])
+        return {"items": items}
+    except ClientError as e:
+        raise HTTPException(status_code=500, detail=str(e))  # 클라이언트 오류 처리
+    
 @app.post("/videos/")
 async def upload_video(file: UploadFile = File(...), title: str = Form(...), description: str = Form(...), token: str = Depends(oauth2_scheme)):
     """S3에 동영상을 업로드하고 메타데이터를 DynamoDB에 저장합니다."""
