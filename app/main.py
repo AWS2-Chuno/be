@@ -137,7 +137,6 @@ async def get_video_details(video_id: str, token: str = Depends(oauth2_scheme)):
     except ClientError as e:
         raise HTTPException(status_code=500, detail=str(e))  # 클라이언트 오류 처리
 
-@app.delete("/videos/{video_id}")
 async def delete_video(video_id: str, token: str = Depends(oauth2_scheme)):
     """S3에서 동영상을 삭제하고 DynamoDB에서 메타데이터를 제거합니다."""
     # 엑세스 토큰 유효성 검사
@@ -157,8 +156,16 @@ async def delete_video(video_id: str, token: str = Depends(oauth2_scheme)):
         if uploader_id != user_id:
             raise HTTPException(status_code=403, detail="You do not have permission to delete this video.")  # 권한 오류
 
+        # file_path에서 버킷명과 파일명 분리
+        file_path = response['Item'].get('file_path')
+        if not file_path:
+            raise HTTPException(status_code=404, detail="File path not found in metadata")
+
+        # 파일 경로에서 버킷명과 파일명을 분리
+        bucket_name, file_name = file_path.split('/', 1)
+
         # S3에서 동영상 삭제
-        s3_client.delete_object(Bucket=S3_BUCKET, Key=response['Item']['filename'])
+        s3_client.delete_object(Bucket=bucket_name, Key=file_name)
 
         # DynamoDB에서 메타데이터 삭제
         dynamodb_table.delete_item(Key={'id': video_id})
