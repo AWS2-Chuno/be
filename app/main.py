@@ -88,7 +88,7 @@ async def list_videos(token: str = Depends(oauth2_scheme)):
     """DynamoDB에서 동영상 데이터 목록을 조회합니다."""
     # 엑세스 토큰 유효성 검사
     validate_token(token)
-
+    
     try:
         response = dynamodb_table.scan(ProjectionExpression='id, title')  # 항목 조회 (단, 큰 테이블에서는 성능 문제 발생 가능)
         items = response.get('Items', [])
@@ -101,19 +101,21 @@ async def upload_video(file: UploadFile = File(...), title: str = Form(...), des
     """S3에 동영상을 업로드하고 메타데이터를 DynamoDB에 저장합니다."""
     # 엑세스 토큰 유효성 검사
     validate_token(token)
-
+    user_id = get_user_id(token)
     try:
         # S3에 동영상 업로드
-        s3_key = f"videos/{uuid.uuid4()}.mp4"
-        s3_client.upload_fileobj(file.file, S3_BUCKET, s3_key)
+        s3_key = f"videos/{uuid.uuid4()}"
+        s3_client.upload_fileobj(file.file, S3_BUCKET, s3_key + ".mp4")
 
         # DynamoDB에 메타데이터 저장
-        #metadata = VideoMetadata(title=title, description=description)
         dynamodb_table.put_item(
             Item={
                 'id': s3_key,  # S3 키를 사용하여 비디오 ID 설정
                 'title': title,
-                'description': description
+                'description': description,
+                'uploader': user_id,
+                'file_path': S3_BUCKET+s3_key+".mp4",
+                'file_path_org': S3_BUCKET+s3_key+".mp4"
             }
         )
         return {"message": "Video uploaded successfully!", "filename": file.filename}  # 성공 메시지 반환
@@ -140,12 +142,20 @@ async def delete_video(video_id: str, token: str = Depends(oauth2_scheme)):
     """S3에서 동영상을 삭제하고 DynamoDB에서 메타데이터를 제거합니다."""
     # 엑세스 토큰 유효성 검사
     validate_token(token)
-
+    user_id = get_user_id(token)
+    
     try:
-        # DynamoDB에서 메타데이터 삭제
+        # DynamoDB에서 메타데이터 가져오기
         response = dynamodb_table.get_item(Key={'id': video_id})
+        
+        # 메타데이터가 없는 경우 404 오류
         if 'Item' not in response:
-            raise HTTPException(status_code=404, detail="Video not found in DynamoDB")  # 메타데이터가 없는 경우 404 오류
+            raise HTTPException(status_code=404, detail="Video not found in DynamoDB")
+
+        # uploader가 user_id와 일치하는지 확인
+        uploader_id = response['Item'].get('uploader')
+        if uploader_id != user_id:
+            raise HTTPException(status_code=403, detail="You do not have permission to delete this video.")  # 권한 오류
 
         # S3에서 동영상 삭제
         s3_client.delete_object(Bucket=S3_BUCKET, Key=response['Item']['filename'])
@@ -156,4 +166,3 @@ async def delete_video(video_id: str, token: str = Depends(oauth2_scheme)):
         return {"message": "Video deleted successfully!"}  # 성공 메시지 반환
     except ClientError as e:
         raise HTTPException(status_code=500, detail=str(e))  # 클라이언트 오류 처리
-
