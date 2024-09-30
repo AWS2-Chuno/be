@@ -104,7 +104,7 @@ async def upload_video(file: UploadFile = File(...), title: str = Form(...), des
     user_id = get_user_id(token)
     try:
         # S3에 동영상 업로드
-        s3_key = f"videos/{uuid.uuid4()}"
+        s3_key = f"{uuid.uuid4()}"
         s3_client.upload_fileobj(file.file, S3_BUCKET, s3_key + ".mp4")
 
         # DynamoDB에 메타데이터 저장
