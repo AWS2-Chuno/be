@@ -5,7 +5,7 @@ metadata:
   namespace: video # 네임스페이스 설정
 spec:
   replicas: 2 # Pod의 복제본 수
-  revisionHistoryLimit: 3  # 최신 3개의 ReplicaSet만 유지
+  revisionHistoryLimit: 3 # 최신 3개의 ReplicaSet만 유지
   selector:
     matchLabels:
       app: video-api-app # 레이블 설정
@@ -23,19 +23,19 @@ spec:
           livenessProbe:
             httpGet:
               path: /health
-              port: 80
+              port: 8000
             initialDelaySeconds: 3
             periodSeconds: 10
           readinessProbe:
             httpGet:
               path: /health
-              port: 80
+              port: 8000
             initialDelaySeconds: 3
             periodSeconds: 10
           volumeMounts:
-          - name: tls-secret
-            mountPath: "/etc/tls"
-            readOnly: true
+            - name: tls-secret
+              mountPath: "/etc/tls"
+              readOnly: true
           envFrom:
             - configMapRef:
                 name: video-api-config # ConfigMap 이름 참조
