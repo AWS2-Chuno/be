@@ -82,7 +82,10 @@ def test(token: str = Depends(oauth2_scheme)):
     except ClientError as e:
         raise HTTPException(status_code=401, detail=str(e))
 
-    
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
 @app.get("/videos/")
 async def list_videos(token: str = Depends(oauth2_scheme)):
     """DynamoDB에서 동영상 데이터 목록을 조회합니다."""
