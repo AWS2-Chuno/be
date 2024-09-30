@@ -66,7 +66,7 @@ async def list_videos(token: str = Depends(oauth2_scheme)):
     validate_token(token)
     
     try:
-        response = dynamodb_table.scan(ProjectionExpression='id, title', 'uploader')  # 항목 조회 (단, 큰 테이블에서는 성능 문제 발생 가능)
+        response = dynamodb_table.scan(ProjectionExpression='id, title, uploader')  # 항목 조회 (단, 큰 테이블에서는 성능 문제 발생 가능)
         items = response.get('Items', [])
         return {"items": items}
     except ClientError as e:
