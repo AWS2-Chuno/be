@@ -7,4 +7,4 @@ data:
   AWS_REGION: "ap-northeast-3" # AWS 리전 설정
   DYNAMODB_TABLE_NAME: "Chuno_videos" # DynamoDB 테이블 이름 설정
   S3_BUCKET_NAME: "chuno-videos-org"
-  COGNITO_USER_POOL_ID: "ap-northeast-3_Rt1SkOGag"
+  COGNITO_USER_POOL_ID: "ap-northeast-3_vgvkuXozI"
