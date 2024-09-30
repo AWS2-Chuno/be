@@ -49,9 +49,9 @@ def test(token: str = Depends(oauth2_scheme)):
     try:
         # 엑세스 토큰 유효성 검사
         validate_token(token)
-        user_id = get_user_id(token)
+        user_name = get_user_name(token)
 
-        return user_id
+        return user_name
     except ClientError as e:
         raise HTTPException(status_code=401, detail=str(e))
 
@@ -77,12 +77,12 @@ async def list_my_videos(token: str = Depends(oauth2_scheme)):
     """DynamoDB에서 동영상 데이터 목록을 조회합니다."""
     # 엑세스 토큰 유효성 검사
     validate_token(token)
-    user_id = get_user_id(token)
+    user_name = get_user_name(token)
 
     try:
         # 'uploader'가 user_id와 일치하는 항목을 필터링하여 조회
         response = dynamodb_table.scan(
-            FilterExpression=Attr('uploader').eq(user_id),  # uploader가 user_id와 일치하는 항목만 필터링
+            FilterExpression=Attr('uploader').eq(user_name),  # uploader가 user_id와 일치하는 항목만 필터링
             ProjectionExpression='id, title'  # id와 title만 가져오기
         )
         items = response.get('Items', [])
@@ -95,7 +95,7 @@ async def upload_video(file: UploadFile = File(...), title: str = Form(...), des
     """S3에 동영상을 업로드하고 메타데이터를 DynamoDB에 저장합니다."""
     # 엑세스 토큰 유효성 검사
     validate_token(token)
-    user_id = get_user_id(token)
+    user_name = get_user_name(token)
     try:
         # S3에 동영상 업로드
         s3_key = f"{uuid.uuid4()}"
@@ -107,7 +107,7 @@ async def upload_video(file: UploadFile = File(...), title: str = Form(...), des
                 'id': s3_key,  # S3 키를 사용하여 비디오 ID 설정
                 'title': title,
                 'description': description,
-                'uploader': user_id,
+                'uploader': user_name,
                 'file_path': S3_BUCKET+'/'+s3_key+".mp4",
                 'file_path_org': S3_BUCKET+'/'+s3_key+".mp4"
             }
@@ -136,7 +136,7 @@ async def delete_video(video_id: str, token: str = Depends(oauth2_scheme)):
     """S3에서 동영상을 삭제하고 DynamoDB에서 메타데이터를 제거합니다."""
     # 엑세스 토큰 유효성 검사
     validate_token(token)
-    user_id = get_user_id(token)
+    user_name = get_user_name(token)
     
     try:
         # DynamoDB에서 메타데이터 가져오기
@@ -148,7 +148,7 @@ async def delete_video(video_id: str, token: str = Depends(oauth2_scheme)):
 
         # uploader가 user_id와 일치하는지 확인
         uploader_id = response['Item'].get('uploader')
-        if uploader_id != user_id:
+        if uploader_id != user_name:
             raise HTTPException(status_code=403, detail="You do not have permission to delete this video.")  # 권한 오류
 
         # file_path에서 버킷명과 파일명 분리
@@ -181,16 +181,22 @@ def validate_token(token: str):
     except ClientError as e:
         raise HTTPException(status_code=401, detail=str(e))
     
-# User ID 조회
-def get_user_id(token: str):
+# User Name 조회
+def get_user_name(token: str):
     try:
-         # Cognito에서 토큰 검증
+        # Cognito에서 토큰 검증
         response = cognito_client.get_user(
             AccessToken=token
         )
         
-        # 사용자 ID 반환
-        user_id = response['Username']  # Username은 기본적으로 사용자의 ID
-        return user_id
+        # UserAttributes에서 'name' 속성 찾기
+        user_attributes = response['UserAttributes']
+        for attribute in user_attributes:
+            if attribute['Name'] == 'name':
+                return attribute['Value']
+        
+        # 'name' 속성을 찾지 못한 경우
+        raise HTTPException(status_code=404, detail="Name attribute not found")
+    
     except ClientError as e:
         raise HTTPException(status_code=401, detail=str(e))
