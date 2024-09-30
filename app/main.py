@@ -6,12 +6,16 @@ import os
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
 import uuid
+import logging
 
 from dotenv import load_dotenv
 
 app = FastAPI()
+
 # .env 파일 로드
 load_dotenv()
+
+logging.basicConfig(level=logging.INFO)
 
 # CORS 설정
 origins = [
@@ -62,6 +66,7 @@ def health_check():
 @app.get("/videos/")
 async def list_videos(token: str = Depends(oauth2_scheme)):
     """DynamoDB에서 동영상 데이터 목록을 조회합니다."""
+    logging.info("DynamoDB에서 동영상 데이터 목록을 조회 시작")
     # 엑세스 토큰 유효성 검사
     validate_token(token)
     
