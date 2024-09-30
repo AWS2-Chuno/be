@@ -136,7 +136,8 @@ async def get_video_details(video_id: str, token: str = Depends(oauth2_scheme)):
         return response['Item']  # 동영상 메타데이터 반환
     except ClientError as e:
         raise HTTPException(status_code=500, detail=str(e))  # 클라이언트 오류 처리
-
+        
+@app.delete("/videos/")
 async def delete_video(video_id: str, token: str = Depends(oauth2_scheme)):
     """S3에서 동영상을 삭제하고 DynamoDB에서 메타데이터를 제거합니다."""
     # 엑세스 토큰 유효성 검사
