@@ -158,7 +158,7 @@ async def delete_video(video_id: str, token: str = Depends(oauth2_scheme)):
             raise HTTPException(status_code=403, detail="You do not have permission to delete this video.")  # 권한 오류
 
         # S3에서 동영상 삭제
-        s3_client.delete_object(Bucket=S3_BUCKET, Key=response['Item']['filename'])
+        s3_client.delete_object(Bucket=S3_BUCKET, Key=response['Item']['file_path'])
 
         # DynamoDB에서 메타데이터 삭제
         dynamodb_table.delete_item(Key={'id': video_id})
