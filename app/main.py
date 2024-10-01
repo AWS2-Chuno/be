@@ -77,7 +77,7 @@ async def list_videos(token: str = Depends(oauth2_scheme)):
     except ClientError as e:
         raise HTTPException(status_code=500, detail=str(e))  # 클라이언트 오류 처리
     
-@app.get("/myvideos/")
+@app.get("/myVideos/")
 async def list_my_videos(token: str = Depends(oauth2_scheme)):
     """DynamoDB에서 동영상 데이터 목록을 조회합니다."""
     # 엑세스 토큰 유효성 검사
@@ -101,6 +101,17 @@ async def upload_video(file: UploadFile = File(...), title: str = Form(...), des
     # 엑세스 토큰 유효성 검사
     validate_token(token)
     user_name = get_user_name(token)
+    
+    # DynamoDB에서 title 중복 체크
+    try:
+        response = dynamodb_table.scan(
+            FilterExpression=Attr('title').eq(title)
+        )
+        if response['Items']:
+            raise HTTPException(status_code=400, detail="Title already exists, please choose another title.")
+    except ClientError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+        
     try:
         # S3에 동영상 업로드
         s3_key = f"{uuid.uuid4()}"
