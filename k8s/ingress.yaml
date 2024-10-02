@@ -8,8 +8,6 @@ metadata:
     alb.ingress.kubernetes.io/target-type: ip  # 대상 그룹의 타입을 IP로 설정
     alb.ingress.kubernetes.io/group.name: eks-chuno-group
     alb.ingress.kubernetes.io/group.order: '1'
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'  # HTTP 포트를 명시적으로 설정
-    alb.ingress.kubernetes.io/backend-protocol: HTTP  # 백엔드 서비스 프로토콜 설정
 spec:
   ingressClassName: alb
   rules:
