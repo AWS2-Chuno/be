@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-    name: chuno-backend-ingress-1
+    name: chuno-backend-ingress
     namespace: video
     annotations:
       alb.ingress.kubernetes.io/scheme: internet-facing
