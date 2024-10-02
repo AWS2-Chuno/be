@@ -10,8 +10,6 @@ metadata:
     alb.ingress.kubernetes.io/group.order: '1'
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'  # HTTP 포트를 명시적으로 설정
     alb.ingress.kubernetes.io/backend-protocol: HTTP  # 백엔드 서비스 프로토콜 설정
-    alb.ingress.kubernetes.io/healthcheck-path: '/health'  # 헬스체크 경로 설정 (필요 시 추가)
-    alb.ingress.kubernetes.io/healthcheck-interval: '30'  # 헬스체크 간격 (초 단위)
 spec:
   ingressClassName: alb
   rules:
