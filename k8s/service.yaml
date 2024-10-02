@@ -4,9 +4,9 @@ metadata:
   name: video-api-service # Service 이름
   namespace: video # 네임스페이스 설정
   annotations:
-    service.beta.kubernetes.io/aws-load-balancer-type: "alb"
+    alb.ingress.kubernetes.io/healthcheck-path: "/health"
 spec:
-  type: LoadBalancer # LoadBalancer 유형으로 설정
+  type: NodePort
   ports:
     - port: 80 # 외부에서 접근할 포트
       targetPort: 8000 # video-api가 사용하는 포트
