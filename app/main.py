@@ -2,12 +2,13 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Depends
 from pydantic import BaseModel
 import boto3
 from botocore.exceptions import ClientError
+from boto3.dynamodb.conditions import Attr, Key
 import os
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
 import uuid
 import logging
-
+from datetime import datetime
 from dotenv import load_dotenv
 
 
@@ -15,8 +16,11 @@ logging.basicConfig(level=logging.INFO)
 
 
 app = FastAPI()
+
 # .env 파일 로드
 load_dotenv()
+
+logging.basicConfig(level=logging.INFO)
 
 # CORS 설정
 origins = [
@@ -72,9 +76,20 @@ async def list_videos(token: str = Depends(oauth2_scheme)):
     validate_token(token)
     
     try:
-        response = dynamodb_table.scan(ProjectionExpression='id, title, uploader')  # 항목 조회 (단, 큰 테이블에서는 성능 문제 발생 가능)
+        response = dynamodb_table.scan(
+            ProjectionExpression='id, title, uploader, #ts',  # 필요한 필드만 선택
+            ExpressionAttributeNames={
+                '#ts': 'timestamp'  # timestamp를 매핑
+            }
+        )
+
+        # 전체 데이터를 메모리에 가져온 후 timestamp 기준으로 정렬
         items = response.get('Items', [])
-        return {"items": items}
+
+        # timestamp 기준으로 최신순으로 정렬
+        sorted_items = sorted(items, key=lambda x: x['timestamp'], reverse=True)
+
+        return {"items": sorted_items}
     except ClientError as e:
         raise HTTPException(status_code=500, detail=str(e))  # 클라이언트 오류 처리
     
@@ -89,10 +104,17 @@ async def list_my_videos(token: str = Depends(oauth2_scheme)):
         # 'uploader'가 user_id와 일치하는 항목을 필터링하여 조회
         response = dynamodb_table.scan(
             FilterExpression=Attr('uploader').eq(user_name),  # uploader가 user_id와 일치하는 항목만 필터링
-            ProjectionExpression='id, title'  # id와 title만 가져오기
+            ProjectionExpression='id, title, uploader, #ts',  # 필요한 필드만 선택
+            ExpressionAttributeNames={
+                '#ts': 'timestamp'  # timestamp를 매핑
+            }
         )
         items = response.get('Items', [])
-        return {"items": items}
+
+        # timestamp 기준으로 최신순으로 정렬
+        sorted_items = sorted(items, key=lambda x: x['timestamp'], reverse=True)
+
+        return {"items": sorted_items}
     except ClientError as e:
         raise HTTPException(status_code=500, detail=str(e))  # 클라이언트 오류 처리
     
@@ -112,7 +134,6 @@ async def upload_video(file: UploadFile = File(...), title: str = Form(...), des
             raise HTTPException(status_code=400, detail="Title already exists, please choose another title.")
     except ClientError as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
     try:
         # S3에 동영상 업로드
         s3_key = f"{uuid.uuid4()}"
@@ -126,7 +147,8 @@ async def upload_video(file: UploadFile = File(...), title: str = Form(...), des
                 'description': description,
                 'uploader': user_name,
                 'file_path': S3_BUCKET+'/'+s3_key+".mp4",
-                'file_path_org': S3_BUCKET+'/'+s3_key+".mp4"
+                'file_path_org': S3_BUCKET+'/'+s3_key+".mp4",
+                'timestamp': datetime.utcnow().isoformat()  # ISO 8601 형식으로 저장
             }
         )
         return {"message": "Video uploaded successfully!", "filename": file.filename}  # 성공 메시지 반환
@@ -183,6 +205,30 @@ async def delete_video(video_id: str, token: str = Depends(oauth2_scheme)):
         dynamodb_table.delete_item(Key={'id': video_id})
 
         return {"message": "Video deleted successfully!"}  # 성공 메시지 반환
+    except ClientError as e:
+        raise HTTPException(status_code=500, detail=str(e))  # 클라이언트 오류 처리
+    
+@app.get("/search/")
+async def search_in_dynamodb(category: str, key: str, token: str = Depends(oauth2_scheme)):
+    """DynamoDB에서 category에 해당하는 key 값을 검색 (포함하는 문자열 및 대소문자 무시)"""
+    # 엑세스 토큰 유효성 검사
+    validate_token(token)
+    
+    try:
+        # Scan을 사용하여 모든 항목 검색
+        response = dynamodb_table.scan(
+            FilterExpression=Attr(category).contains(key),  # category에서 key가 포함된 항목 필터링
+            ProjectionExpression='id, title, uploader, #ts',  # 필요한 필드만 선택
+            ExpressionAttributeNames={
+                '#ts': 'timestamp'  # timestamp를 매핑
+            }
+        )
+        items = response.get('Items', [])
+
+        # timestamp 기준으로 최신순으로 정렬
+        sorted_items = sorted(items, key=lambda x: x['timestamp'], reverse=True)
+
+        return {"items": sorted_items}
     except ClientError as e:
         raise HTTPException(status_code=500, detail=str(e))  # 클라이언트 오류 처리
 
