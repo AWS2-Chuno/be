@@ -17,6 +17,6 @@ COPY . .
 RUN mkdir -p /etc/tls
 
 # 6. FastAPI 애플리케이션 실행
-#CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--ssl-keyfile", "/etc/tls/tls.key", "--ssl-certfile", "/etc/tls/tls.crt"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+#CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--ssl-keyfile", "/etc/tls/tls.key", "--ssl-certfile", "/etc/tls/tls.crt"]
 
