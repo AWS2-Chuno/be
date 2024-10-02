@@ -24,14 +24,6 @@ spec:
           #   httpGet:
           #     path: /health
           #     port: 8000
-          volumeMounts:
-            - name: tls-secret
-              mountPath: "/etc/tls"
-              readOnly: true
           envFrom:
             - configMapRef:
                 name: video-api-config # ConfigMap 이름 참조
-      volumes:
-        - name: tls-secret
-          secret:
-            secretName: video-tls-secret
