@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-    name: "chuno-backend-ingress"
+    name: chuno-backend-ingress
     namespace: video
     annotations:
       alb.ingress.kubernetes.io/scheme: internet-facing
@@ -17,6 +17,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: "video-api-service"
+                name: video-api-service
                 port:
                   number: 80
