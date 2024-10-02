@@ -8,10 +8,12 @@ metadata:
     alb.ingress.kubernetes.io/target-type: ip  # 대상 그룹의 타입을 IP로 설정
     alb.ingress.kubernetes.io/group.name: eks-chuno-group
     alb.ingress.kubernetes.io/group.order: '1'
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-3:339712823683:certificate/4cf3924b-2654-4daf-8463-16265264f688
 spec:
   ingressClassName: alb
   rules:
-    - http:
+    - host: api.chuno.store
+      http:
         paths:
           - path: /
             pathType: Prefix
