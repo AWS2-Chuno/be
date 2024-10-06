@@ -67,31 +67,46 @@ def test(token: str = Depends(oauth2_scheme)):
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
-
 @app.get("/videos/")
-async def list_videos(token: str = Depends(oauth2_scheme)):
-    """DynamoDB에서 동영상 데이터 목록을 조회합니다."""
+async def list_videos(
+    token: str = Depends(oauth2_scheme),
+    limit: int = Query(10, description="페이지당 아이템 수"),
+    last_evaluated_key: str = Query(None, description="이전 페이지의 마지막 아이템 키", alias="lastKey")
+):
+    """DynamoDB에서 동영상 데이터 목록을 페이지네이션하여 조회합니다."""
     logging.info("DynamoDB에서 동영상 데이터 목록을 조회 시작")
+    
     # 엑세스 토큰 유효성 검사
     validate_token(token)
-    
-    try:
-        response = dynamodb_table.scan(
-            ProjectionExpression='id, title, uploader, #ts',  # 필요한 필드만 선택
-            ExpressionAttributeNames={
-                '#ts': 'timestamp'  # timestamp를 매핑
-            }
-        )
 
-        # 전체 데이터를 메모리에 가져온 후 timestamp 기준으로 정렬
+    try:
+        # DynamoDB Scan 요청 파라미터 구성
+        scan_params = {
+            'ProjectionExpression': 'id, title, uploader, #ts',  # 필요한 필드만 선택
+            'ExpressionAttributeNames': {'#ts': 'timestamp'},  # timestamp 필드 매핑
+            'Limit': limit  # 요청 시 지정한 페이지당 아이템 수
+        }
+
+        # 마지막으로 조회된 아이템이 있다면 `ExclusiveStartKey` 설정
+        if last_evaluated_key:
+            scan_params['ExclusiveStartKey'] = {'id': last_evaluated_key}
+
+        # DynamoDB Scan 실행
+        response = dynamodb_table.scan(**scan_params)
+
         items = response.get('Items', [])
 
-        # timestamp 기준으로 최신순으로 정렬
+        # timestamp 기준으로 최신순 정렬
         sorted_items = sorted(items, key=lambda x: x['timestamp'], reverse=True)
 
-        return {"items": sorted_items}
+        # LastEvaluatedKey가 있으면 페이지네이션에 사용
+        last_key = response.get('LastEvaluatedKey', None)
+
+        return {"items": sorted_items, "lastKey": last_key}
+
     except ClientError as e:
-        raise HTTPException(status_code=500, detail=str(e))  # 클라이언트 오류 처리
+        logging.error(f"DynamoDB 조회 중 오류 발생: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
     
 @app.get("/myVideos/")
 async def list_my_videos(token: str = Depends(oauth2_scheme)):
