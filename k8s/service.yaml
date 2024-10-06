@@ -6,7 +6,7 @@ metadata:
   annotations:
     alb.ingress.kubernetes.io/healthcheck-path: "/health"
 spec:
-  type: NodePort
+  type: ClusterIP
   ports:
     - port: 80 # 외부에서 접근할 포트
       targetPort: 8000 # video-api가 사용하는 포트
