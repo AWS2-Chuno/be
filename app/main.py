@@ -113,7 +113,7 @@ async def list_videos(
 async def list_my_videos(
     token: str = Depends(oauth2_scheme),
     limit: int = 10,  # 페이지당 조회할 항목 수
-    last_evaluated_key: Optional[Dict[str, Any]] = None  # 마지막 평가된 키 (optional)
+    last_evaluated_key: str = Query(None, description="이전 페이지의 마지막 아이템 키", alias="lastKey")
 ):
     """DynamoDB에서 동영상 데이터 목록을 조회합니다."""
     # 엑세스 토큰 유효성 검사
@@ -248,7 +248,7 @@ async def search_in_dynamodb(
     key: str,
     token: str = Depends(oauth2_scheme),
     limit: int = 10,  # 페이지당 항목 수
-    last_evaluated_key: Optional[Dict[str, Any]] = None  # 마지막 평가된 키 (optional)
+    last_evaluated_key: str = Query(None, description="이전 페이지의 마지막 아이템 키", alias="lastKey")
 ):
     """DynamoDB에서 category에 해당하는 key 값을 검색 (포함하는 문자열 및 대소문자 무시)"""
     # 엑세스 토큰 유효성 검사
