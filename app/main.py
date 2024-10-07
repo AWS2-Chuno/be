@@ -45,6 +45,7 @@ S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
 DYNAMODB_TABLE_NAME = os.getenv("DYNAMODB_TABLE_NAME")
 COGNITO_USER_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
 VIDEO_CF= 'https://d5p87gbtmit6i.cloudfront.net/uploads/'
+secret_url = os.environ.get('SECRET_URL')
 
 
 
@@ -171,7 +172,7 @@ def upload_video(file: UploadFile = File(...), title: str = Form(...), descripti
         
        
         
-        url = "https://hooks.slack.com/services/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"
+        url = secret_url
         data = {
             "text": user_name+" 님이 동영상을 업로드했습니다"
         }
