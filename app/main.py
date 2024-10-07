@@ -9,6 +9,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import uuid
 import logging
 from datetime import datetime
+import requests
+import json
 from dotenv import load_dotenv
 
 
@@ -125,7 +127,7 @@ async def list_my_videos(token: str = Depends(oauth2_scheme)):
 
     
 @app.post("/videos/")
-async def upload_video(file: UploadFile = File(...), title: str = Form(...), description: str = Form(...), token: str = Depends(oauth2_scheme)):
+def upload_video(file: UploadFile = File(...), title: str = Form(...), description: str = Form(...), token: str = Depends(oauth2_scheme)):
     """S3에 동영상을 업로드하고 메타데이터를 DynamoDB에 저장합니다."""
     logging.info("S3에 동영상을 업로드하고 메타데이터를 DynamoDB에 저장 시작")
     # 엑세스 토큰 유효성 검사
@@ -166,6 +168,22 @@ async def upload_video(file: UploadFile = File(...), title: str = Form(...), des
                 'timestamp': datetime.utcnow().isoformat()  # ISO 8601 형식으로 저장
             }
         )
+        
+       
+        
+        url = "https://hooks.slack.com/services/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"
+        data = {
+            "text": user_name+" 님이 동영상을 업로드했습니다"
+        }
+        # Make the POST request
+        response = requests.post(url, data=json.dumps(data), headers={'Content-type': 'application/json'})
+        
+        # Check the response
+        if response.status_code == 200:
+            print("Message sent successfully!")
+        else:
+            print(f"Failed to send message: {response.status_code}, {response.text}")
+    
         return {"message": "Video uploaded successfully!", "filename": file.filename}  # 성공 메시지 반환
     except ClientError as e:
         raise HTTPException(status_code=500, detail=str(e))  # 클라이언트 오류 처리
