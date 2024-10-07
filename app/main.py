@@ -37,11 +37,11 @@ app.add_middleware(
 )
 
 # AWS 리전, S3 버킷 이름, DynamoDB 테이블 이름 환경 변수에서 가져오기
-AWS_REGION = str(os.getenv("AWS_REGION"))
-S3_BUCKET_NAME_ORG = str(os.getenv("S3_BUCKET_NAME_ORG"))
-S3_BUCKET_NAME = str(os.getenv("S3_BUCKET_NAME"))
-DYNAMODB_TABLE_NAME = str(os.getenv("DYNAMODB_TABLE_NAME"))
-COGNITO_USER_POOL_ID = str(os.getenv("COGNITO_USER_POOL_ID"))
+AWS_REGION = os.getenv("AWS_REGION")
+S3_BUCKET_NAME_ORG = os.getenv("S3_BUCKET_NAME_ORG")
+S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
+DYNAMODB_TABLE_NAME = os.getenv("DYNAMODB_TABLE_NAME")
+COGNITO_USER_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
 
 
 
@@ -147,7 +147,7 @@ async def upload_video(file: UploadFile = File(...), title: str = Form(...), des
         # S3에 동영상 업로드
         logging.info("S3 동영상 업로드 시작")
         s3_key = f"{uuid.uuid4()}"
-        s3_client.upload_fileobj(file.file, S3_BUCKET_NAME_ORG,+'/uploads/'+ s3_key + ".mp4")
+        s3_client.upload_fileobj(file.file, S3_BUCKET_NAME_ORG + "/uploads/" + s3_key + ".mp4")
         logging.info("S3 동영상 업로드 완료")
 
         logging.info("DynamoDB에 메타데이터 저장 시작")
