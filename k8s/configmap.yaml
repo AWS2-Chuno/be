@@ -9,3 +9,4 @@ data:
   S3_BUCKET_NAME_ORG: "chuno-source-bucket"
   S3_BUCKET_NAME: "chuno-destination-bucket"
   COGNITO_USER_POOL_ID: "ap-northeast-3_vgvkuXozI"
+  SLACK_WEBHOOK_URL: "https://hooks.slack.com/services/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"
