@@ -147,7 +147,7 @@ async def upload_video(file: UploadFile = File(...), title: str = Form(...), des
         # S3에 동영상 업로드
         logging.info("S3 동영상 업로드 시작")
         s3_key = f"{uuid.uuid4()}"
-        s3_client.upload_fileobj(file.file, S3_BUCKET_NAME_ORG + "/uploads/" + s3_key + ".mp4")
+        s3_client.upload_fileobj(file.file, S3_BUCKET_NAME_ORG, "/uploads/" + s3_key + ".mp4")
         logging.info("S3 동영상 업로드 완료")
 
         logging.info("DynamoDB에 메타데이터 저장 시작")
