@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO)
 app = FastAPI()
 
 # .env 파일 로드
-load_dotenv()
+#load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 
