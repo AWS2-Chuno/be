@@ -204,18 +204,21 @@ async def delete_video(video_id: str, token: str = Depends(oauth2_scheme)):
             raise HTTPException(status_code=403, detail="You do not have permission to delete this video.")  # 권한 오류
 
         # file_path에서 버킷명과 파일명 분리
-        file_path = response['Item'].get('file_path')
-        if not file_path:
+        file_path_org = response['Item'].get('file_path_org')
+        if not file_path_org:
             raise HTTPException(status_code=404, detail="File path not found in metadata")
 
         # 파일 경로에서 버킷명과 파일명을 분리
-        bucket_name_org, file_name = file_path.split('/', 1)
+        bucket_name_org, file_name = file_path_org.split('/', 1)
 
         # S3에서 원본 동영상 삭제
         s3_client.delete_object(Bucket=bucket_name_org, Key=file_name)
 
         # S3 버킷 내 폴더 내 모든 객체 가져오기
-        objects_to_delete = s3_client.list_objects_v2(Bucket=S3_BUCKET_NAME, Prefix='uploads/')
+        id = response['Item'].get('id')
+        if not id:
+            raise HTTPException(status_code=404, detail="File path not found in metadata")
+        objects_to_delete = s3_client.list_objects_v2(Bucket=S3_BUCKET_NAME, Prefix='uploads/'+id+'/')
 
         # 폴더 내 객체가 있을 경우 삭제
         if 'Contents' in objects_to_delete:
