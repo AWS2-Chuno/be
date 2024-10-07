@@ -42,6 +42,7 @@ S3_BUCKET_NAME_ORG = os.getenv("S3_BUCKET_NAME_ORG")
 S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
 DYNAMODB_TABLE_NAME = os.getenv("DYNAMODB_TABLE_NAME")
 COGNITO_USER_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
+VIDEO_CF= 'https://d5p87gbtmit6i.cloudfront.net/uploads/'
 
 
 
@@ -159,8 +160,8 @@ async def upload_video(file: UploadFile = File(...), title: str = Form(...), des
                 'description': description,
                 'uploader': user_name,
                 'file_path': S3_BUCKET_NAME+'/uploads/'+s3_key+".m3u8",
-                'file_url': 'https://d5p87gbtmit6i.cloudfront.net/uploads/' + s3_key + '/' + s3_key +'.m3u8',
-                'thumbnail_path': S3_BUCKET_NAME+'/'+s3_key+"_thumbnail.0000000.jpg",
+                'file_url': VIDEO_CF + s3_key + '/' + s3_key +'.m3u8',
+                'thumbnail_path': VIDEO_CF + s3_key + '/' + s3_key + "_thumbnail.0000000.jpg",
                 'file_path_org': S3_BUCKET_NAME_ORG+'/uploads/'+s3_key+".mp4",
                 'timestamp': datetime.utcnow().isoformat()  # ISO 8601 형식으로 저장
             }
