@@ -37,15 +37,17 @@ app.add_middleware(
 )
 
 # AWS 리전, S3 버킷 이름, DynamoDB 테이블 이름 환경 변수에서 가져오기
-AWS_REGION = os.getenv("AWS_REGION")
-S3_BUCKET = os.getenv("S3_BUCKET_NAME")
-DYNAMODB_TABLE_NAME = os.getenv("DYNAMODB_TABLE_NAME")
-COGNITO_USER_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
+AWS_REGION = str(os.getenv("AWS_REGION"))
+S3_BUCKET = str(os.getenv("S3_BUCKET_NAME"))
+DYNAMODB_TABLE_NAME = str(os.getenv("DYNAMODB_TABLE_NAME"))
+COGNITO_USER_POOL_ID = str(os.getenv("COGNITO_USER_POOL_ID"))
 
-logging.info(AWS_REGION, " : AWS_REGION")
-logging.info(S3_BUCKET, " : S3_BUCKET")
-logging.info(DYNAMODB_TABLE_NAME, " : DYNAMODB_TABLE_NAME")
-logging.info(COGNITO_USER_POOL_ID, " : COGNITO_USER_POOL_ID")
+logging.info("AWS_REGION : ", AWS_REGION)
+logging.info("S3_BUCKET : ", S3_BUCKET)
+logging.info("DYNAMODB_TABLE_NAME : ", DYNAMODB_TABLE_NAME)
+logging.info("COGNITO_USER_POOL_ID : ", COGNITO_USER_POOL_ID)
+
+
 
 # AWS 클라이언트 설정
 s3_client = boto3.client('s3', region_name=AWS_REGION)  # S3 클라이언트
