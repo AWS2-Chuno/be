@@ -38,14 +38,11 @@ app.add_middleware(
 
 # AWS 리전, S3 버킷 이름, DynamoDB 테이블 이름 환경 변수에서 가져오기
 AWS_REGION = str(os.getenv("AWS_REGION"))
-S3_BUCKET = str(os.getenv("S3_BUCKET_NAME"))
+S3_BUCKET_NAME_ORG = str(os.getenv("S3_BUCKET_NAME_ORG"))
+S3_BUCKET_NAME = str(os.getenv("S3_BUCKET_NAME"))
 DYNAMODB_TABLE_NAME = str(os.getenv("DYNAMODB_TABLE_NAME"))
 COGNITO_USER_POOL_ID = str(os.getenv("COGNITO_USER_POOL_ID"))
 
-logging.info("AWS_REGION : ", AWS_REGION)
-logging.info("S3_BUCKET : ", S3_BUCKET)
-logging.info("DYNAMODB_TABLE_NAME : ", DYNAMODB_TABLE_NAME)
-logging.info("COGNITO_USER_POOL_ID : ", COGNITO_USER_POOL_ID)
 
 
 
@@ -84,7 +81,7 @@ async def list_videos(token: str = Depends(oauth2_scheme)):
     
     try:
         response = dynamodb_table.scan(
-            ProjectionExpression='id, title, uploader, #ts',  # 필요한 필드만 선택
+            ProjectionExpression='id, title, thumbnail_path, uploader, #ts',  # 필요한 필드만 선택
             ExpressionAttributeNames={
                 '#ts': 'timestamp'  # timestamp를 매핑
             }
@@ -111,7 +108,7 @@ async def list_my_videos(token: str = Depends(oauth2_scheme)):
         # 'uploader'가 user_id와 일치하는 항목을 필터링하여 조회
         response = dynamodb_table.scan(
             FilterExpression=Attr('uploader').eq(user_name),  # uploader가 user_id와 일치하는 항목만 필터링
-            ProjectionExpression='id, title, uploader, #ts',  # 필요한 필드만 선택
+            ProjectionExpression='id, title, thumbnail_path, uploader, #ts',  # 필요한 필드만 선택
             ExpressionAttributeNames={
                 '#ts': 'timestamp'  # timestamp를 매핑
             }
@@ -150,9 +147,9 @@ async def upload_video(file: UploadFile = File(...), title: str = Form(...), des
         # S3에 동영상 업로드
         logging.info("S3 동영상 업로드 시작")
         s3_key = f"{uuid.uuid4()}"
-        s3_client.upload_fileobj(file.file, S3_BUCKET, s3_key + ".mp4")
+        s3_client.upload_fileobj(file.file, S3_BUCKET_NAME_ORG, s3_key + ".mp4")
         logging.info("S3 동영상 업로드 완료")
-        
+
         logging.info("DynamoDB에 메타데이터 저장 시작")
         # DynamoDB에 메타데이터 저장
         dynamodb_table.put_item(
@@ -161,8 +158,9 @@ async def upload_video(file: UploadFile = File(...), title: str = Form(...), des
                 'title': title,
                 'description': description,
                 'uploader': user_name,
-                'file_path': S3_BUCKET+'/'+s3_key+".mp4",
-                'file_path_org': S3_BUCKET+'/'+s3_key+".mp4",
+                'file_path': S3_BUCKET_NAME+'/uploads/'+s3_key+".m3u8",
+                'thumbnail_path': S3_BUCKET_NAME+'/'+s3_key+"_thumbnail.0000000.jpg",
+                'file_path_org': S3_BUCKET_NAME_ORG+'/'+s3_key+".mp4",
                 'timestamp': datetime.utcnow().isoformat()  # ISO 8601 형식으로 저장
             }
         )
@@ -211,10 +209,28 @@ async def delete_video(video_id: str, token: str = Depends(oauth2_scheme)):
             raise HTTPException(status_code=404, detail="File path not found in metadata")
 
         # 파일 경로에서 버킷명과 파일명을 분리
-        bucket_name, file_name = file_path.split('/', 1)
+        bucket_name_org, file_name = file_path.split('/', 1)
 
-        # S3에서 동영상 삭제
-        s3_client.delete_object(Bucket=bucket_name, Key=file_name)
+        # S3에서 원본 동영상 삭제
+        s3_client.delete_object(Bucket=bucket_name_org, Key=file_name)
+
+        # S3 버킷 내 폴더 내 모든 객체 가져오기
+        objects_to_delete = s3_client.list_objects_v2(Bucket=S3_BUCKET_NAME, Prefix='uploads/')
+
+        # 폴더 내 객체가 있을 경우 삭제
+        if 'Contents' in objects_to_delete:
+            delete_keys = [{'Key': obj['Key']} for obj in objects_to_delete['Contents']]
+
+            # 객체 삭제
+            response = s3_client.delete_objects(
+                Bucket=S3_BUCKET_NAME,
+                Delete={
+                    'Objects': delete_keys
+                }
+            )
+            print(f"{len(delete_keys)} objects deleted from uploads")
+        else:
+            print(f"No objects found in uploads")
 
         # DynamoDB에서 메타데이터 삭제
         dynamodb_table.delete_item(Key={'id': video_id})
