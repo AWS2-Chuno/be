@@ -76,85 +76,52 @@ def health_check():
     return {"status": "ok"}
     
 @app.get("/videos/")
-async def list_videos(
-    token: str = Depends(oauth2_scheme),
-    limit: int = Query(10, description="페이지당 아이템 수"),
-    last_evaluated_key: str = Query(None, description="이전 페이지의 마지막 아이템 키", alias="lastKey")
-):
-    """DynamoDB에서 동영상 데이터 목록을 페이지네이션하여 조회합니다."""
+async def list_videos(token: str = Depends(oauth2_scheme)):
+    """DynamoDB에서 동영상 데이터 목록을 조회합니다."""
     logging.info("DynamoDB에서 동영상 데이터 목록을 조회 시작")
-    
     # 엑세스 토큰 유효성 검사
     validate_token(token)
-
+    
     try:
-        # DynamoDB Scan 요청 파라미터 구성
-        scan_params = {
-            'ProjectionExpression': 'id, title, uploader, #ts',  # 필요한 필드만 선택
-            'ExpressionAttributeNames': {'#ts': 'timestamp'},  # timestamp 필드 매핑
-            'Limit': limit  # 요청 시 지정한 페이지당 아이템 수
-        }
+        response = dynamodb_table.scan(
+            ProjectionExpression='id, title, uploader, #ts',  # 필요한 필드만 선택
+            ExpressionAttributeNames={
+                '#ts': 'timestamp'  # timestamp를 매핑
+            }
+        )
 
-        # 마지막으로 조회된 아이템이 있다면 `ExclusiveStartKey` 설정
-        if last_evaluated_key:
-            scan_params['ExclusiveStartKey'] = {'id': last_evaluated_key}
-
-        # DynamoDB Scan 실행
-        response = dynamodb_table.scan(**scan_params)
-
+        # 전체 데이터를 메모리에 가져온 후 timestamp 기준으로 정렬
         items = response.get('Items', [])
 
-        # timestamp 기준으로 최신순 정렬
+        # timestamp 기준으로 최신순으로 정렬
         sorted_items = sorted(items, key=lambda x: x['timestamp'], reverse=True)
 
-        # LastEvaluatedKey가 있으면 페이지네이션에 사용
-        last_key = response.get('LastEvaluatedKey', None)
-
-        return {"items": sorted_items, "lastKey": last_key}
-
+        return {"items": sorted_items}
     except ClientError as e:
-        logging.error(f"DynamoDB 조회 중 오류 발생: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e))  # 클라이언트 오류 처리
     
 @app.get("/myVideos/")
-async def list_my_videos(
-    token: str = Depends(oauth2_scheme),
-    limit: int = 10,  # 페이지당 조회할 항목 수
-    last_evaluated_key: str = Query(None, description="이전 페이지의 마지막 아이템 키", alias="lastKey")
-):
+async def list_my_videos(token: str = Depends(oauth2_scheme)):
     """DynamoDB에서 동영상 데이터 목록을 조회합니다."""
     # 엑세스 토큰 유효성 검사
     validate_token(token)
     user_name = get_user_name(token)
 
     try:
-        # DynamoDB Scan에 사용할 매개변수 설정
-        scan_kwargs = {
-            "FilterExpression": Attr('uploader').eq(user_name),
-            "ProjectionExpression": 'id, title, uploader, #ts',
-            "ExpressionAttributeNames": {
-                '#ts': 'timestamp'
-            },
-            "Limit": limit  # 요청당 항목 수 제한
-        }
-
-        # 마지막 평가된 키가 있으면 시작점으로 사용
-        if last_evaluated_key:
-            scan_kwargs["ExclusiveStartKey"] = last_evaluated_key
-
-        # DynamoDB scan 호출
-        response = dynamodb_table.scan(**scan_kwargs)
-
+        # 'uploader'가 user_id와 일치하는 항목을 필터링하여 조회
+        response = dynamodb_table.scan(
+            FilterExpression=Attr('uploader').eq(user_name),  # uploader가 user_id와 일치하는 항목만 필터링
+            ProjectionExpression='id, title, uploader, #ts',  # 필요한 필드만 선택
+            ExpressionAttributeNames={
+                '#ts': 'timestamp'  # timestamp를 매핑
+            }
+        )
         items = response.get('Items', [])
+
+        # timestamp 기준으로 최신순으로 정렬
         sorted_items = sorted(items, key=lambda x: x['timestamp'], reverse=True)
 
-        # 마지막 평가된 키 반환
-        last_evaluated_key = response.get('LastEvaluatedKey', None)
-
-        return {
-            "items": sorted_items,
-            "last_evaluated_key": last_evaluated_key  # 페이지네이션을 위한 마지막 평가된 키 반환
-        }
+        return {"items": sorted_items}
     except ClientError as e:
         raise HTTPException(status_code=500, detail=str(e))  # 클라이언트 오류 처리
 
@@ -170,20 +137,23 @@ async def upload_video(file: UploadFile = File(...), title: str = Form(...), des
     logging.info("엑세스 토큰 유효성 검사 완료")
 
     # DynamoDB에서 title 중복 체크
-    try:
-        response = dynamodb_table.scan(
-            FilterExpression=Attr('title').eq(title)
-        )
-        if response['Items']:
-            raise HTTPException(status_code=400, detail="Title already exists, please choose another title.")
-    except ClientError as e:
-        logging.info(e)
-        raise HTTPException(status_code=500, detail=str(e))
+    # try:
+    #     response = dynamodb_table.scan(
+    #         FilterExpression=Attr('title').eq(title)
+    #     )
+    #     if response['Items']:
+    #         raise HTTPException(status_code=400, detail="Title already exists, please choose another title.")
+    # except ClientError as e:
+    #     logging.info(e)
+    #     raise HTTPException(status_code=500, detail=str(e))
     try:
         # S3에 동영상 업로드
+        logging.info("S3 동영상 업로드 시작")
         s3_key = f"{uuid.uuid4()}"
         s3_client.upload_fileobj(file.file, S3_BUCKET, s3_key + ".mp4")
-
+        logging.info("S3 동영상 업로드 완료")
+        
+        logging.info("DynamoDB에 메타데이터 저장 시작")
         # DynamoDB에 메타데이터 저장
         dynamodb_table.put_item(
             Item={
@@ -254,45 +224,26 @@ async def delete_video(video_id: str, token: str = Depends(oauth2_scheme)):
         raise HTTPException(status_code=500, detail=str(e))  # 클라이언트 오류 처리
     
 @app.get("/search/")
-async def search_in_dynamodb(
-    category: str,
-    key: str,
-    token: str = Depends(oauth2_scheme),
-    limit: int = 10,  # 페이지당 항목 수
-    last_evaluated_key: str = Query(None, description="이전 페이지의 마지막 아이템 키", alias="lastKey")
-):
+async def search_in_dynamodb(category: str, key: str, token: str = Depends(oauth2_scheme)):
     """DynamoDB에서 category에 해당하는 key 값을 검색 (포함하는 문자열 및 대소문자 무시)"""
     # 엑세스 토큰 유효성 검사
     validate_token(token)
     
     try:
-        # Scan에 사용할 매개변수 설정
-        scan_kwargs = {
-            "FilterExpression": Attr(category).contains(key),  # category에서 key가 포함된 항목 필터링
-            "ProjectionExpression": 'id, title, uploader, #ts',  # 필요한 필드만 선택
-            "ExpressionAttributeNames": {
+        # Scan을 사용하여 모든 항목 검색
+        response = dynamodb_table.scan(
+            FilterExpression=Attr(category).contains(key),  # category에서 key가 포함된 항목 필터링
+            ProjectionExpression='id, title, uploader, #ts',  # 필요한 필드만 선택
+            ExpressionAttributeNames={
                 '#ts': 'timestamp'  # timestamp를 매핑
-            },
-            "Limit": limit  # 요청당 항목 수 제한
-        }
-
-        # 마지막 평가된 키가 있으면 시작점으로 사용
-        if last_evaluated_key:
-            scan_kwargs["ExclusiveStartKey"] = last_evaluated_key
-
-        # DynamoDB scan 호출
-        response = dynamodb_table.scan(**scan_kwargs)
-
+            }
+        )
         items = response.get('Items', [])
+
+        # timestamp 기준으로 최신순으로 정렬
         sorted_items = sorted(items, key=lambda x: x['timestamp'], reverse=True)
 
-        # 마지막 평가된 키 반환
-        last_evaluated_key = response.get('LastEvaluatedKey', None)
-
-        return {
-            "items": sorted_items,
-            "last_evaluated_key": last_evaluated_key  # 페이지네이션을 위한 마지막 평가된 키 반환
-        }
+        return {"items": sorted_items}
     except ClientError as e:
         raise HTTPException(status_code=500, detail=str(e))  # 클라이언트 오류 처리
 
