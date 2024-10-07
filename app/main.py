@@ -42,6 +42,11 @@ S3_BUCKET = os.getenv("S3_BUCKET_NAME")
 DYNAMODB_TABLE_NAME = os.getenv("DYNAMODB_TABLE_NAME")
 COGNITO_USER_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
 
+logging.info(AWS_REGION, " : AWS_REGION")
+logging.info(S3_BUCKET, " : S3_BUCKET")
+logging.info(DYNAMODB_TABLE_NAME, " : DYNAMODB_TABLE_NAME")
+logging.info(COGNITO_USER_POOL_ID, " : COGNITO_USER_POOL_ID")
+
 # AWS 클라이언트 설정
 s3_client = boto3.client('s3', region_name=AWS_REGION)  # S3 클라이언트
 dynamodb_client = boto3.resource('dynamodb', region_name=AWS_REGION)  # DynamoDB 클라이언트
@@ -155,9 +160,12 @@ async def list_my_videos(
 @app.post("/videos/")
 async def upload_video(file: UploadFile = File(...), title: str = Form(...), description: str = Form(...), token: str = Depends(oauth2_scheme)):
     """S3에 동영상을 업로드하고 메타데이터를 DynamoDB에 저장합니다."""
+    logging.info("S3에 동영상을 업로드하고 메타데이터를 DynamoDB에 저장 시작")
     # 엑세스 토큰 유효성 검사
     validate_token(token)
     user_name = get_user_name(token)
+
+    logging.info("엑세스 토큰 유효성 검사 완료")
 
     # DynamoDB에서 title 중복 체크
     try:
@@ -167,6 +175,7 @@ async def upload_video(file: UploadFile = File(...), title: str = Form(...), des
         if response['Items']:
             raise HTTPException(status_code=400, detail="Title already exists, please choose another title.")
     except ClientError as e:
+        logging.info(e)
         raise HTTPException(status_code=500, detail=str(e))
     try:
         # S3에 동영상 업로드
