@@ -138,7 +138,7 @@ def upload_video(file: UploadFile = File(...), title: str = Form(...), descripti
 
     logging.info("엑세스 토큰 유효성 검사 완료")
 
-    DynamoDB에서 title 중복 체크
+    #DynamoDB에서 title 중복 체크
     try:
         response = dynamodb_table.scan(
             FilterExpression=Attr('title').eq(title)
