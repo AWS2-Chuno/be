@@ -9,3 +9,4 @@ data:
   S3_BUCKET_NAME_ORG: "chuno-source-bucket"
   S3_BUCKET_NAME: "chuno-destination-bucket"
   COGNITO_USER_POOL_ID: "ap-northeast-3_vgvkuXozI"
+  SLACK_URL_KMS: "AQICAHjjNzdRQOOrt+9nWHRiEerUwLl6LSfGQCkYn8Qmkiq+WQGMcSWBla9xxrJ0+RqnVoqvAAAAszCBsAYJKoZIhvcNAQcGoIGiMIGfAgEAMIGZBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDCOcQXNVDdYQ6H8/8gIBEIBszJyNubwUgtlht0Zz3r0TyOt98xF7b5psljUFPbLGGyo1fCEkz3WAGXhZqR805WzXgb5fIqI50DpPPiWotQjyv6eOAx8zziDgFe+WU6ECTxrzA4fht9NMtEiRxNqTTPgUzkgMJwiI1IhjIYi4"
