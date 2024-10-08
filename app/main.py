@@ -62,15 +62,6 @@ cognito_client = boto3.client('cognito-idp', region_name=AWS_REGION)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-
-# 암호화된 값을 복호화
-def decrypt_value(ciphertext_blob):
-    response = kms_client.decrypt(
-        CiphertextBlob=ciphertext_blob
-    )
-    return response['Plaintext']
-
-
 @app.get("/")
 def test(token: str = Depends(oauth2_scheme)):
     try:
@@ -182,11 +173,17 @@ def upload_video(file: UploadFile = File(...), title: str = Form(...), descripti
         
        
         # 복호화된 값 출력
-        decrypted_value = decrypt_value(encrypted_value)
-        
-        url = decrypted_value.decode()
+        #decrypted_value = decrypt_value(encrypted_value)
+        ciphertext_blob = base64.b64decode(encrypted_value)  # 디코딩
+
         logging.info("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+        response = kms_client.decrypt(CiphertextBlob=ciphertext_blob)
+        logging.info("@@@@@@@@@@@@@@@@@@@")
+        value = response['Plaintext']
+        url = value.decode('utf-8')
         logging.info(url)
+        
+        
         
         data = {
             "text": user_name+" 님이 동영상을 업로드했습니다"
