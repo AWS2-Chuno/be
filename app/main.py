@@ -184,13 +184,17 @@ def upload_video(file: UploadFile = File(...), title: str = Form(...), descripti
         decrypted_value = decrypt_value(encrypted_value)
         
         url = decrypted_value.decode()
-        print(url)
-
+        logging.info("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+        logging.info(url)
+        
         data = {
             "text": user_name+" 님이 동영상을 업로드했습니다"
         }
         # Make the POST request
         response = requests.post(url, data=json.dumps(data), headers={'Content-type': 'application/json'})
+
+        logging.info(response.text)
+        logging.info("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
         
         # Check the response
         if response.status_code == 200:
