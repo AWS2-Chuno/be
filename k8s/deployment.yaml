@@ -20,6 +20,9 @@ spec:
           image: 339712823683.dkr.ecr.ap-northeast-3.amazonaws.com/backend:80
           ports:
             - containerPort: 8000 # video-api가 사용하는 포트
+          resources:
+            limits:
+              cpu: 1000m
           envFrom:
             - configMapRef:
                 name: video-api-config # ConfigMap 이름 참조
