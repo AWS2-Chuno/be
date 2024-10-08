@@ -22,7 +22,7 @@ spec:
             - containerPort: 8000 # video-api가 사용하는 포트
           resources:
             limits:
-              cpu: 1000m
+              cpu: 500m
           envFrom:
             - configMapRef:
                 name: video-api-config # ConfigMap 이름 참조
