@@ -12,7 +12,7 @@ metadata:
 spec:
   ingressClassName: alb
   rules:
-    - host: api.chuno.store
+    #- host: api.chuno.store
       http:
         paths:
           - path: /
