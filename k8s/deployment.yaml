@@ -26,9 +26,9 @@ spec:
           envFrom:
             - configMapRef:
                 name: video-api-config # ConfigMap 이름 참조
-          env:
-            - name: SECRET_URL # 환경 변수 이름
-              valueFrom:
-                secretKeyRef:
-                  name: video-secret # 사용하고자 하는 Secret의 이름
-                  key: secret-url # Secret에서 사용할 키
+          # env:
+          #   - name: SECRET_URL # 환경 변수 이름
+          #     valueFrom:
+          #       secretKeyRef:
+          #         name: video-secret # 사용하고자 하는 Secret의 이름
+          #         key: secret-url # Secret에서 사용할 키
