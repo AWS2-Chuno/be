@@ -45,21 +45,30 @@ S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
 DYNAMODB_TABLE_NAME = os.getenv("DYNAMODB_TABLE_NAME")
 COGNITO_USER_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
 VIDEO_CF= 'https://d5p87gbtmit6i.cloudfront.net/uploads/'
-secret_url = os.environ.get('SECRET_URL')
-
-
+encrypted_value = os.environ.get('SLACK_URL_KMS')
 
 
 # AWS 클라이언트 설정
 s3_client = boto3.client('s3', region_name=AWS_REGION)  # S3 클라이언트
 dynamodb_client = boto3.resource('dynamodb', region_name=AWS_REGION)  # DynamoDB 클라이언트
 dynamodb_table = dynamodb_client.Table(DYNAMODB_TABLE_NAME)  # DynamoDB 테이블 객체
+kms_client = boto3.client('kms') # KMS 클라이언트 생성
 
 # Cognito 설정
 cognito_client = boto3.client('cognito-idp', region_name=AWS_REGION)
 
 # OAuth2PasswordBearer를 사용하여 토큰을 받기 위한 경로 정의
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+
+
+# 암호화된 값을 복호화
+def decrypt_value(ciphertext_blob):
+    response = kms_client.decrypt(
+        CiphertextBlob=ciphertext_blob
+    )
+    return response['Plaintext']
+
 
 @app.get("/")
 def test(token: str = Depends(oauth2_scheme)):
@@ -171,8 +180,12 @@ def upload_video(file: UploadFile = File(...), title: str = Form(...), descripti
         )
         
        
+        # 복호화된 값 출력
+        decrypted_value = decrypt_value(encrypted_value)
         
-        url = secret_url
+        url = decrypted_value.decode()
+        print(url)
+
         data = {
             "text": user_name+" 님이 동영상을 업로드했습니다"
         }
