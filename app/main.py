@@ -138,16 +138,16 @@ def upload_video(file: UploadFile = File(...), title: str = Form(...), descripti
 
     logging.info("엑세스 토큰 유효성 검사 완료")
 
-    # DynamoDB에서 title 중복 체크
-    # try:
-    #     response = dynamodb_table.scan(
-    #         FilterExpression=Attr('title').eq(title)
-    #     )
-    #     if response['Items']:
-    #         raise HTTPException(status_code=400, detail="Title already exists, please choose another title.")
-    # except ClientError as e:
-    #     logging.info(e)
-    #     raise HTTPException(status_code=500, detail=str(e))
+    DynamoDB에서 title 중복 체크
+    try:
+        response = dynamodb_table.scan(
+            FilterExpression=Attr('title').eq(title)
+        )
+        if response['Items']:
+            raise HTTPException(status_code=400, detail="Title already exists, please choose another title.")
+    except ClientError as e:
+        logging.info(e)
+        raise HTTPException(status_code=500, detail=str(e))
     try:
         # S3에 동영상 업로드
         logging.info("S3 동영상 업로드 시작")
@@ -172,27 +172,18 @@ def upload_video(file: UploadFile = File(...), title: str = Form(...), descripti
         )
         
        
-        # 복호화된 값 출력
-        #decrypted_value = decrypt_value(encrypted_value)
         ciphertext_blob = base64.b64decode(encrypted_value)  # 디코딩
 
-        logging.info("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
         response = kms_client.decrypt(CiphertextBlob=ciphertext_blob)
-        logging.info("@@@@@@@@@@@@@@@@@@@")
+
         value = response['Plaintext']
         url = value.decode('utf-8')
-        logging.info(url)
-        
-        
         
         data = {
             "text": user_name+" 님이 동영상을 업로드했습니다"
         }
         # Make the POST request
         response = requests.post(url, data=json.dumps(data), headers={'Content-type': 'application/json'})
-
-        logging.info(response.text)
-        logging.info("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
         
         # Check the response
         if response.status_code == 200:
