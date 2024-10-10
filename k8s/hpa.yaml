@@ -11,4 +11,4 @@ spec:
     kind: Deployment
     name: video-api-app
     namespace: video
-  targetCPUUtilizationPercentage: 80
+  targetCPUUtilizationPercentage: 10
