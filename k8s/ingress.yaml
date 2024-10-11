@@ -5,7 +5,7 @@ metadata:
   namespace: video
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing  # ALB의 타입을 인터넷에 노출하도록 설정
-    alb.ingress.kubernetes.io/target-type: ip  # 대상 그룹의 타입을 IP로 설정
+    alb.ingress.kubernetes.io/target-type: ip  # 대상 그룹의 타입을 IP로 설정 
 spec:
   ingressClassName: alb
   rules:
