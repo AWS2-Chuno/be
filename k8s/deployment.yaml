@@ -23,7 +23,7 @@ spec:
                 operator: In
                 values:
                 - video-api-app
-            topologyKey: "topology.kubernetes.io/region=ap-northeast-3"
+            topologyKey: "eks.amazonaws.com/nodegroup"
       serviceAccountName: video-sa
       priorityClassName: high-priority # 우선순위
       containers:
