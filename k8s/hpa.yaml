@@ -4,11 +4,11 @@ metadata:
   name: video-api-hpa
   namespace: video
 spec:
-  minReplicas: 2
-  maxReplicas: 4
-  scaleTargetRef:
+  minReplicas: 2 # 최소 복제본 수
+  maxReplicas: 4 # 최대 복제본 수
+  scaleTargetRef: # 타겟 리소스
     apiVersion: apps/v1
     kind: Deployment
     name: video-api-app
     namespace: video
-  targetCPUUtilizationPercentage: 50
+  targetCPUUtilizationPercentage: 50 # CPU 사용량 기준
