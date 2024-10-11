@@ -16,7 +16,7 @@ spec:
     spec:
       affinity:
         podAntiAffinity: # 가능한 한 다른 노드에 스케줄링
-          requiredDuringSchedulingIgnoredDuringExecution:
+          preferredDuringSchedulingIgnoredDuringExecution:
           - labelSelector:
               matchExpressions:
               - key: app
