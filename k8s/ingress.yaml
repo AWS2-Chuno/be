@@ -6,8 +6,6 @@ metadata:
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing  # ALB의 타입을 인터넷에 노출하도록 설정
     alb.ingress.kubernetes.io/target-type: ip  # 대상 그룹의 타입을 IP로 설정
-    alb.ingress.kubernetes.io/group.name: eks-chuno-group
-    alb.ingress.kubernetes.io/group.order: '1'
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
     alb.ingress.kubernetes.io/redirect-http-to-https: "true"
     alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-3:339712823683:certificate/5f480034-419c-41eb-8611-881e22b314e8
