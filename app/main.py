@@ -76,6 +76,12 @@ def test(token: str = Depends(oauth2_scheme)):
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
+
+# 엔드포인트: 요청 시 CPU 부하를 주는 작업을 수행
+@app.get("/cpu-stress/{n}")
+async def cpu_stress(n: int):
+    result = intensive_task(n)
+    return {"prime_count": len(result)}
     
 @app.get("/videos/")
 async def list_videos(token: str = Depends(oauth2_scheme)):
@@ -296,6 +302,19 @@ async def search_in_dynamodb(category: str, key: str, token: str = Depends(oauth
 
 ###########################################################################################
 
+# CPU 집약적인 작업: 주어진 숫자까지의 소수를 계산
+def intensive_task(n: int):
+    primes = []
+    for num in range(2, n):
+        is_prime = True
+        for i in range(2, int(math.sqrt(num)) + 1):
+            if num % i == 0:
+                is_prime = False
+                break
+        if is_prime:
+            primes.append(num)
+    return primes
+ 
 # 엑세스 토큰 유효성 검사
 def validate_token(token: str):
     try:
