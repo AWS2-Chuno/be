@@ -17,7 +17,7 @@ spec:
       affinity:
         podAntiAffinity: # 가능한 한 다른 노드에 스케줄링
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100  # 또는 원하는 값
+          - weight: 10  # 또는 원하는 값
             podAffinityTerm:
               labelSelector:
                 matchExpressions:
