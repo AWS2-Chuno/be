@@ -2,22 +2,22 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: video-api-app
-  namespace: video # 네임스페이스 설정
+  namespace: video
 spec:
-  replicas: 2 # Pod의 복제본 수
+  replicas: 2 # Pod 복제본 수
   revisionHistoryLimit: 2 # 최신 2개의 ReplicaSet만 유지
   selector:
     matchLabels:
-      app: video-api-app # 레이블 설정
+      app: video-api-app 
   template:
     metadata:
       labels:
-        app: video-api-app # 레이블 설정
+        app: video-api-app 
     spec:
       affinity:
         podAntiAffinity: # 가능한 한 다른 노드에 스케줄링
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 10  # 또는 원하는 값
+          - weight: 10 
             podAffinityTerm:
               labelSelector:
                 matchExpressions:
@@ -29,12 +29,12 @@ spec:
       serviceAccountName: video-sa
       priorityClassName: high-priority # 우선순위
       containers:
-        - name: video-api-container # 컨테이너 이름
-          image: 339712823683.dkr.ecr.ap-northeast-3.amazonaws.com/backend:89
+        - name: video-api-container 
+          image: 339712823683.dkr.ecr.ap-northeast-3.amazonaws.com/backend:89 # 컨테이너 이미지
           ports:
             - containerPort: 8000 # video-api가 사용하는 포트
           resources:
-            limits:
+            requests:
               cpu: 800m
           envFrom:
             - configMapRef:
