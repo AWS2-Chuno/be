@@ -39,7 +39,7 @@ spec:
           envFrom:
             - configMapRef:
                 name: video-api-config # ConfigMap 이름 참조
-          Liveness Probe 설정
+          # Liveness Probe 설정
           livenessProbe: # 실패 시 컨테이너 재시작
             httpGet:
               path: /health
