@@ -4,11 +4,11 @@ metadata:
   name: video-api-hpa
   namespace: video
 spec:
-  minReplicas: 1
+  minReplicas: 2
   maxReplicas: 4
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
     name: video-api-app
     namespace: video
-  targetCPUUtilizationPercentage: 10
+  targetCPUUtilizationPercentage: 50
