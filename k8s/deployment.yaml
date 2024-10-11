@@ -4,8 +4,8 @@ metadata:
   name: video-api-app
   namespace: video # 네임스페이스 설정
 spec:
-  replicas: 1 # Pod의 복제본 수
-  revisionHistoryLimit: 2 # 최신 3개의 ReplicaSet만 유지
+  replicas: 2 # Pod의 복제본 수
+  revisionHistoryLimit: 2 # 최신 2개의 ReplicaSet만 유지
   selector:
     matchLabels:
       app: video-api-app # 레이블 설정
@@ -15,7 +15,7 @@ spec:
         app: video-api-app # 레이블 설정
     spec:
       serviceAccountName: video-sa
-      priorityClassName: high-priority
+      priorityClassName: high-priority # 우선순위
       containers:
         - name: video-api-container # 컨테이너 이름
           image: 339712823683.dkr.ecr.ap-northeast-3.amazonaws.com/backend:87
