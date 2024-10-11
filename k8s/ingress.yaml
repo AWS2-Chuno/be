@@ -6,6 +6,9 @@ metadata:
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing  # ALB의 타입을 인터넷에 노출하도록 설정
     alb.ingress.kubernetes.io/target-type: ip  # 대상 그룹의 타입을 IP로 설정 
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'  # HTTP와 HTTPS 포트 설정
+    alb.ingress.kubernetes.io/redirect-http-to-https: "true"  # HTTP를 HTTPS로 리다이렉트
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-3:339712823683:certificate/4cf3924b-2654-4daf-8463-16265264f688 # SSL 인증서 ARN
 spec:
   ingressClassName: alb
   rules:
