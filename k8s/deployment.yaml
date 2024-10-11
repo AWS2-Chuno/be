@@ -17,12 +17,14 @@ spec:
       affinity:
         podAntiAffinity: # 가능한 한 다른 노드에 스케줄링
           preferredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-              - key: app
-                operator: In
-                values:
-                - video-api-app
+          - weight: 100  # 또는 원하는 값
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - video-api-app
       serviceAccountName: video-sa
       priorityClassName: high-priority # 우선순위
       containers:
