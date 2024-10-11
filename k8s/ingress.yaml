@@ -9,12 +9,12 @@ metadata:
 spec:
   ingressClassName: alb
   rules:
-    http:
-      paths:
-        - path: /
-          pathType: Prefix
-          backend:
-            service:
-              name: video-api-service  # 사용하고자 하는 서비스의 이름
-              port:
-                number: 80  # 서비스의 포트 번호
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: video-api-service
+                port:
+                  number: 80
